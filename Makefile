@@ -1,45 +1,73 @@
-NAME   		=	webserv
-SRC_DIR		=	src
-INCL_DIR	=	includes
-OBJ_DIR		= 	obj
+RED=\033[0;31m
+GREEN=\033[0;32m
+BLUE=\033[0;34m
+YELLOW=\033[1;33m
+END=\033[0m
 
-OBJ			=	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRC))
-
-all: $(NAME)
-
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
-	mkdir -p $(OBJ_DIR)/src
-
-$(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
-	$(CC) $(FLAGS) -c $< -o $@
-
-$(NAME): $(OBJ)
-	$(CC) $(FLAGS) $(OBJ) -o $(NAME)
-
-m ?= update
-
-push:
-	@$(MAKE) fclean
-	git add .
-	git commit -m "$(m)"
-	git push
-	@echo -e "\033[32mPROGRAM Push on git with message:\033[0m" "$(m)"
-
-clean:
-	rm -rf $(OBJ_DIR) 
-	@echo -e "\033[34mALL .O FILES SUCCESSFULLY DELETED\033[0m"
-
-test: $(OBJ)
-	clear
-	$(CC) $(FLAGS) $(OBJ) -o $(NAME)
-	valgrind --leak-check=full --track-fds=yes ./$(NAME) 
+up:
+	@cd srcs && docker compose up --build -d
+	@echo "$(GREEN)BUILD AND RUN IMAGE$(END)"
 
 
-fclean: clean
-	rm -f $(NAME)
-	@echo -e "\033[35mPROGRAM SUCCESSFULLY DELETED\033[0m"
+build: 
+	@cd srcs && docker compose build
+	@echo "$(GREEN)IMAGE CREATED$(END)"
+
+
+down:
+	@cd srcs && docker compose down --rmi all
+	@echo "$(RED)CONTAINERS, NETWORK AND IMAGES BUILD BY DOCKER COMPOSE REMOVE$(END)"
+
+clear_containers_and_images:
+	@if [ -n "$$(docker ps -aq)" ]; then \
+		echo "$(RED)SUPPRESS CONTAINERS:$(END)"; \
+		docker rm -f $$(docker ps -aq); \
+	else \
+		echo "$(YELLOW)No containers to suppress$(END)"; \
+	fi
+	@if [ -n "$$(docker images -aq)" ]; then \
+		echo "\n$(RED)SUPPRESS IMAGES:$(END)"; \
+		docker rmi -f $$(docker images -aq); \
+	else \
+		echo "$(YELLOW)No images to suppress$(END)"; \
+	fi
+
+
+remove_volume:
+	@echo "\n$(RED)VOLUME REMOVE:$(END)"
+	@docker volume prune -f
+
+
+remove_cache:
+	@echo "\n$(RED)CACHE REMOVE:$(END)"
+	@docker builder prune -af
+
+
+version:
+	@echo "$(BLUE)DOCKER VERSION:$(END)"
+	@docker --version
+	@echo "\n$(BLUE)DOCKER COMPOSE VERSION:$(END)"
+	@docker compose version
+
+
+status:
+	@echo "$(BLUE)DOCKER PROCESS STATUS ALL:$(END)"
+	@docker ps -a
+
+	@echo "\n$(BLUE)DOCKER IMAGES ALL:$(END)"
+	@docker images -a
+	
+	@echo "\n$(BLUE)DOCKER SYSTEM:$(END)"
+	@docker system df
+	@echo ""
+
+fclean: clear_containers_and_images remove_volume remove_cache
+
 
 re: fclean all
 
-.PHONY: all clean fclean re test push
+
+.PHONY: up build down\
+		clear_containers_and_images remove_cache remove_volume\
+		version status \
+		fclean re

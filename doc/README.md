@@ -1,6 +1,6 @@
 This project has been created as part of the 42 curriculum by bertrmar.
 
-## Table of Contents
+# __Table of Contents__
 
 - [Overview](#overview)
 - [Prerequisites and Environment Setup](#prerequisites-and-environment-setup)
@@ -31,10 +31,10 @@ This project has been created as part of the 42 curriculum by bertrmar.
 - [Data Storage and Persistence](#data-storage-and-persistence)
 - [Useful Commands Reference](#useful-commands-reference)
 
-### HOW DOCKER WORKS
+## <u>__HOW DOCKER WORKS__</u>
 
 find latest stable version 
-alpine lts
+alpine lts (in browser)
 alpine less huge than debian
 
 Namespaces : isolation des ressources (réseau, PID, utilisateurs…)
@@ -43,13 +43,20 @@ Capabilities : contrôle des privilèges (granularité fine des droits root)
 
 install docker :
 sudo apt install docker.io : version for linux
-pour docker officiel : curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh (install docker compose)
+pour docker officiel : curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh (install docker compose + key)
+add in group docker : sudo usermod -aG docker $USER
+reboot
 
 https://dyma.fr/blogAlthough it cannot guarantee error-free performance, as the behavior of an application ultimately depends on many factors beyond the image itself, using Docker can reduce the likelihood of unexpected errors.Although it cannot guarantee error-free performance, as the behavior of an application ultimately depends on many factors beyond the image itself, using Docker can reduce the likelihood of unexpected errors.
 
-![image](containers.svg)
+![image](https://geekflare.com/fr/wp-content/uploads/sites/26/2019/09/traditional-vs-new-gen.png)
 
-### OTHER
+## <u>__OTHER__</u>
+
+files yaml ou yml for docker compose : easy for interpretation for many languages
+
+Every Docker package is signed with a private key. Your system needs the corresponding public key to verify this signature. We could find this in /etc/apt/keyrings/.
+
 
 container engine
 
@@ -69,8 +76,30 @@ blob = Binary Large Object
 
 PID1 doesn't received signal ctrl + C (SIGINT) or docker stop (SIGTERM) by default
 
+## <u>__VOLUME__</u>
+Persistante stores for containers
 
-### DOCKER FILE
+
+### *__DOCKER VOLUME__*
+
+Persistante stores for containers  
+Completely manage by docker  
+easier to migrate and back up  
+Work on windows and linux  
+Manage with CLI or docker API
+More safely share among multiple containers  
+Hight perf I\O
+Survive to containers
+
+Not access files from the host  
+
+
+### *__BIND MOUNT__*
+
+
+
+
+## <u>__DOCKER FILE__</u>
 
 Say how image could be mount  
 Create layer in app image for each instruction, this layer are stack in cache like this the process is fast (only modifying layer are rebuild) and lightweight (layer could be share between several images)  
@@ -102,32 +131,100 @@ Images minimales : préférez distroless ou Chainguard pour la sécurité (pas d
 |EXPOSE|Dit sur quelle port le conteneur ecoute (presistion possible TCP ou UDP mais TCP par default)|
 |HEALTHCHECK|Definit commande qui s'execut tout les x pour verifier si le conteneur est ok sinon "non sain"|
 |STOPSIGNAL|Definit signal envoyer au conteneur lorsqu'il s'arrete|
-|SHELL|Dit quelle terminal lancer pour executer les commandent|
+|SHELL|Dit quelle terminal lancer pour executer les commandent|  
+
+|Concept|Define|
+|--|--|
+|Image|Modèle immuable (read-only) composé de layers|
+|Conteneur|Processus isolé + layer R/W (éphémère par défaut)|
+|docker-run|Crée puis démarre un conteneur (create → start)|
+|State|created → running ↔ paused → exited → removed|
+|Daemon|dockerd orchestre via API ; le client docker envoie des requêtes|
+|Layers|Chaque instruction Dockerfile = une couche partagée et cachée|
 
 ### TSL
 
 Transport layer security, modern version of SSL. Garanty security between app web and server for privacy data. This is garanty if you are in HTTPS if the browser say than the site doesn't have a good version of this one, it possibly dangerouse.
 
-### COMMANDE DOCKER  
+# __COMMAND__
 
-#### CONTAINER MANAGE
+## <u>__COMMAND DOCKER__</u>
+
+### *__IMAGE MANAGE__*
 ```bash
-docker ps               														# List running containers (process status)  
-docker ps -a            														# List all containers (all)  
-docker logs <name>      														# View container logs  
-docker exec -it <name> sh														# Exec specific container  
-sudo nsenter --target <pid> --mount --uts --ipc --pid --net --cgroup sh 		# Exec with namespace  
-sudo nsenter --t <pid> --m --u --i --p --n --cgroup sh 							# Same command  
-docker inspect <name>   														# Container info  
+docker build -t <name>				# Build image from Dockerfile (current dir)
+docker images           			# List images
+docker rmi <image>      			# Delete image
+docker rmi -f <image>   			# Force delete image
 ```
 
-#### CLEAN
+### *__CONTAINER MANAGE__*
+```bash
+docker run <image>       			# Run a container
+docker run -d <image>    			# Run in background (detached)
+docker run -it <image> sh			# Interactive shell inside container
+
+docker ps   						# Running containers
+docker ps -a						# All containers (running + stopped)
+
+docker stop <container>   			# Stop container
+docker start <container>  			# Start stopped container
+docker restart <container>			# Restart container
+
+docker rm <container>   			# Remove container
+docker rm -f <container>			# Force remove running container
+
+docker logs <container>				# View logs
+
+docker exec -it <container> sh		# Enter running container
+
+docker inspect <container>			# Full container info
+
+sudo nsenter --target <pid> --mount --uts --ipc --pid --net --cgroup sh
+sudo nsenter --t <pid> -m -u -i -p -n -c sh
+```
+
+### *__CLEAN__*
 
 ```bash
-docker system df           # Show disk usage
-docker system prune -a     # Remove all unused resources
+docker system df					# Disk usage (images, containers, cache)
+
+docker system prune   				# Remove stopped containers + unused networks
+docker system prune -a				# Remove EVERYTHING unused (images included)
+
+docker rm -f $(docker ps -aq)		# Delete ALL containers
+
+docker builder prune      			# Remove build cache only
+docker builder prune -a -f			# Remove ALL build cache (aggressive)
 ```
-### Ressources
+
+## <u>__COMMAND DOCKER COMPOSE__</u>
+
+### *__IMAGE MANAGE__*
+```bash
+docker compose -f <f1.yml> -f <f2.yml>	# Combine files than you supply and considerate on one files in order of you supply
+docker compose up						# Build (re)creat, start containers
+docker compose down --rmi all			# Remove 
+docker rmi <image>   					# Delete image
+docker rmi -f <image>					# Force delete image
+```
+
+### *__CONTAINER MANAGE__*
+```bash
+docker compose down>					# Run a container
+
+docker compose ps						# Running containers launch by docker compose
+docker conpose ps -a					# All containers (running + stopped) launch by docker compose
+```
+
+### *__CLEAN__*
+
+```bash
+docker compose down	--rmi all					# Stop and remove containers, network, volume (--rmi all remove images) created by docker compose up
+```
+
+
+# __Ressources__
 
 - Learning global containers
 	- https://blog.stephane-robert.info/docs/conteneurisation/

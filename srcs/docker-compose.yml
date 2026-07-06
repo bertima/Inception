@@ -1,0 +1,7 @@
+services:
+  nginx:
+    build: requirements/nginx/.
+    image: nginx:1.30
+    container_name: nginx
+    ports:
+      - "8080"
