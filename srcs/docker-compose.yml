@@ -1,7 +1,61 @@
+name: inception
+
 services:
   nginx:
-    build: requirements/nginx/.
-    image: nginx:1.30
+    image: nginx
+    build: 
+      context: requirements/nginx/.
     container_name: nginx
+    env_file: .env
     ports:
-      - "8080"
+      - "443:443"
+    networks:
+      - inception
+    restart: on-failure
+
+
+  wordpress:
+    image: wordpress
+    build:
+      context: requirements/wordpress/.
+    container_name: wordpress
+    env_file: .env
+    volumes:
+      - type: volume
+        source: wp_data
+        target: /home/bertrmar/data
+    networks:
+      - inception
+    restart: on-failure
+
+  maria_db:
+    image: mariadb
+    build:
+      context: requirements/mariadb/.
+    container_name: mariadb
+    env_file: .env
+    networks:
+      - inception
+    restart: on-failure
+
+
+# ================= Networks =================
+networks:
+  inception:
+    driver: bridge
+
+# ================= Volumes =================
+volumes:
+  wp_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USER}/data
+
+  nginx_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USER}/data

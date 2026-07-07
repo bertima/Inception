@@ -76,6 +76,14 @@ blob = Binary Large Object
 
 PID1 doesn't received signal ctrl + C (SIGINT) or docker stop (SIGTERM) by default
 
+### .ENV
+
+```bash
+DOMAIN_NAME=$(USER).42.fr
+WP_DATA_PATH=/home/$(USER)/data
+```
+
+
 ## <u>__VOLUME__</u>
 Persistante stores for containers
 
@@ -142,9 +150,10 @@ Images minimales : préférez distroless ou Chainguard pour la sécurité (pas d
 |Daemon|dockerd orchestre via API ; le client docker envoie des requêtes|
 |Layers|Chaque instruction Dockerfile = une couche partagée et cachée|
 
-### TSL
+### TLS
 
-Transport layer security, modern version of SSL. Garanty security between app web and server for privacy data. This is garanty if you are in HTTPS if the browser say than the site doesn't have a good version of this one, it possibly dangerouse.
+Transport layer security, modern version of SSL. Garanty security between app web and server for privacy data. This is garanty if you are in HTTPS if the browser say than the site doesn't have a good version of this one, it possibly dangerouse.  
+
 
 # __COMMAND__
 
