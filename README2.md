@@ -155,6 +155,42 @@ Images minimales : préférez distroless ou Chainguard pour la sécurité (pas d
 Transport layer security, modern version of SSL. Garanty security between app web and server for privacy data. This is garanty if you are in HTTPS if the browser say than the site doesn't have a good version of this one, it possibly dangerouse.  
 
 
+# MARIADB
+
+## COMMAND
+
+
+<u>__ALL COMMAND FINISH WITH ';'__</u>
+|COMMAND|ARG|DEFINITION|
+|--|--|--|
+|SHOW|DATABASES|show lis of databases|
+||TABLES|list all tables|
+||variables like '<name>'|search and show variables with <name>|
+|DESCRIBE|<tab_name>|show inside table|
+|SELECT|<name> FROM <tab_name>| show you value in <name>|
+
+
+## COMMAND VERIF
+
+docker exec -it mariadb mariadb -u root -p -e "SHOW DATABASES;"
+
+docker exec -it mariadb mariadb -u root -p -e "db_name; SHOW TABLES;"
+
+# WORPRESS
+
+## COMMAND VERIF
+
+docker exec -it wordpress php83 /usr/local/bin/wp config list --path=/var/www/bertrmar.42.fr --allow-root  
+
+docker exec -it wordpress php83 /usr/local/bin/wp core is-installed --path=/var/www/bertrmar.42.fr --allow-root && echo "OK installé"  
+
+docker exec -it wordpress php83 /usr/local/bin/wp db check --path=/var/www/bertrmar.42.fr --allow-root
+
+docker exec -it wordpress php83 /usr/local/bin/wp option get siteurl --path=/var/www/bertrmar.42.fr --allow-root
+docker exec -it wordpress php83 /usr/local/bin/wp option get blogname --path=/var/www/bertrmar.42.fr --allow-root
+
+docker exec -it wordpress ls -la /var/www/bertrmar.42.fr/wp-config.php
+
 # __COMMAND__
 
 ## <u>__COMMAND DOCKER__</u>

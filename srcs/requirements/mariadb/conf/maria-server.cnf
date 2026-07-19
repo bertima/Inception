@@ -1,0 +1,37 @@
+[mysqld]
+# Main section for the MariaDB server
+
+# Run MariaDB as the mysql user for security reasons
+user = mysql
+
+# Default port for MySQL connections (can be changed if needed)
+port = 3306
+
+# File containing the PID (process ID) (not strictly necessary)
+pid-file = /run/mysqld/mysqld.pid
+
+# MariaDB installation directory
+basedir = /usr
+
+# Location of the database data files
+datadir = /var/lib/mysql
+
+# Directory for temporary files
+tmpdir = /tmp
+
+# Directory containing translation files
+lc-messages-dir = /usr/share/mysql
+
+# Language used for server messages
+lc-messages = en_US
+
+# Disable external locking (improves performance in containerized environments)
+skip-external-locking
+
+# IMPORTANT: accept connections from all network interfaces
+# This allows other Docker containers (like WordPress) to connect
+bind-address = 0.0.0.0
+
+# Default character encoding (utf8mb4 supports emojis and international characters)
+character-set-server = utf8mb4
+collation-server = utf8mb4_general_ci

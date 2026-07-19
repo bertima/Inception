@@ -7,7 +7,9 @@ END=\033[0m
 SRC = srcs
 ENV_FILE = srcs/.env
 VOLUME_LOCAL = /home/$(USER)/data/
-DOMAIN = bertrmar.42.fr
+
+-include $(ENV_FILE)
+DOMAIN = $(DOMAIN_NAME)
 
 
 #==================================== RUN ====================================#
@@ -16,12 +18,12 @@ DOMAIN = bertrmar.42.fr
 all: check_config up 
 
 
-up:
+up: check_config
 	@cd $(SRC) && docker compose up --build -d
 	@echo "$(GREEN)BUILD AND RUN IMAGE$(END)"
 
 
-build: 
+build: check_config
 	@cd $(SRC) && docker compose build
 	@echo "$(GREEN)IMAGE CREATED$(END)"
 
@@ -43,8 +45,11 @@ status:
 	@echo "\n$(BLUE)DOCKER IMAGES ALL:$(END)"
 	@docker images -a
 	
-	@echo "\n$(BLUE)DOCKER VOLUME ALL:$(END)"
+	@echo "\n$(BLUE)DOCKER VOLUME:$(END)"
 	@docker volume ls
+
+	@echo "\n$(BLUE)DOCKER NETWORK ALL:$(END)"
+	@docker network ls
 
 	@echo "\n$(BLUE)DOCKER SYSTEM:$(END)"
 	@docker system df
@@ -53,11 +58,12 @@ status:
 
 check_env:
 	@if [ -f $(ENV_FILE) ]; then \
-		echo "$(GREEN).env EXIST$(END)"; \
+		echo "$(GREEN).env exist$(END)"; \
 	else \
 		echo "$(RED).env IS MISSING, CREAT THEN BEFORE CONTINUE$(END)"; \
 		exit 1; \
 	fi
+
 
 
 check_domain:
@@ -65,7 +71,25 @@ check_domain:
 		echo "127.0.0.1 $(DOMAIN)" | sudo tee -a /etc/hosts > /dev/null; \
 		echo "$(YELLOW)$(DOMAIN) ADDED TO /etc/hosts.$(END)"; \
 	else \
-		echo "$(GREEN)$(DOMAIN) EXIST.$(END)"; \
+		echo "$(GREEN)$(DOMAIN) exist.$(END)"; \
+	fi
+
+check_certificate:
+	@if [ ! -d "$(VOLUME_LOCAL)/nginx" ]; then \
+		echo "$(RED)Creat folder : $(VOLUME_LOCAL)/nginx for creat certificate$(END)"; \
+		exit 1; \
+	fi
+
+	@if [ ! -f /home/$(USER)/data/nginx/inception.crt ]; then \
+		openssl req -x509 -nodes -days 365 \
+			-newkey rsa:2048 \
+			-keyout /home/$(USER)/data/nginx/inception.key \
+			-out /home/$(USER)/data/nginx/inception.crt \
+			-subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=$(DOMAIN)" \
+			> /dev/null 2>&1; \
+		echo "$(YELLOW)Certificate CREATED.$(END)"; \
+	else \
+		echo "$(GREEN)Certificate exist.$(END)"; \
 	fi
 
 
@@ -77,15 +101,37 @@ check_path_volume:
 		mkdir -p $(VOLUME_LOCAL); \
 	fi
 
+	@if [ -d "$(VOLUME_LOCAL)/nginx" ]; then \
+		echo "$(GREEN)Volume local already exist: $(VOLUME_LOCAL)/nginx$(END)"; \
+	else \
+		echo "$(YELLOW)Creating volume local: $(VOLUME_LOCAL)/nginx$(END)"; \
+		mkdir -p $(VOLUME_LOCAL)/nginx; \
+	fi
 
-check_config: check_env check_domain check_path_volume
+	@if [ -d "$(VOLUME_LOCAL)/html" ]; then \
+		echo "$(GREEN)Volume local already exist: $(VOLUME_LOCAL)/html$(END)"; \
+	else \
+		echo "$(YELLOW)Creating volume local: $(VOLUME_LOCAL)/html$(END)"; \
+		mkdir -p $(VOLUME_LOCAL)/html; \
+	fi
+
+	@if [ -d "$(VOLUME_LOCAL)/mariadb" ]; then \
+		echo "$(GREEN)Volume local already exist: $(VOLUME_LOCAL)/mariadb$(END)"; \
+	else \
+		echo "$(YELLOW)Creating volume local: $(VOLUME_LOCAL)/mariadb$(END)"; \
+		mkdir -p $(VOLUME_LOCAL)/mariadb; \
+		sudo chown -R bertrmar:bertrmar $(VOLUME_LOCAL)/mariadb; \
+	fi
+
+
+check_config: check_env check_domain check_path_volume check_certificate
 
 
 #==================================== CLEAR ====================================#
 
 
 down:
-	@cd srcs && docker compose down --rmi all
+	@cd srcs && docker compose down -v --rmi all
 	@echo "$(RED)CONTAINERS, NETWORK AND IMAGES BUILD BY DOCKER COMPOSE REMOVE$(END)"
 
 
@@ -120,6 +166,14 @@ remove_env:
 		echo "$(YELLOW).env DOESN'T EXIST:$(END)"; \
 	fi
 
+remove_certificate:
+	@if [ -n "ls $(VOLUME_LOCAL)/nginx" ]; then \
+		echo "$(RED)Certificate remove$(END)\n"; \
+		rm -rf $(VOLUME_LOCAL)/nginx; \
+	else \
+		echo "$(YELLOW)Certificate DOESN'T EXIST$(END)"; \
+	fi
+
 remove_volume:
 	@if [ -n "$$(docker volume ls -q)" ]; then \
 		echo "\n$(RED)VOLUME REMOVE:$(END)"; \
@@ -128,11 +182,19 @@ remove_volume:
 		echo "$(YELLOW)No volume to remove$(END)"; \
 	fi
 
+remove_network:
+	@if [ -n "$$(docker network ls -q --filter type=custom)" ]; then \
+		echo "\n$(RED)NETWORKS REMOVE:$(END)"; \
+		docker network rm  $$(docker network ls -q --filter type=custom); \
+	else \
+		echo "$(YELLOW)No networks to remove$(END)"; \
+	fi
+
 
 remove_volume_local:
 	@if [ -d "$(VOLUME_LOCAL)" ]; then \
 		echo "$(RED)VOLUME LOCAL REMOVE: $(VOLUME_LOCAL)$(END)"; \
-		rm -Rf  $(VOLUME_LOCAL); \
+		sudo rm -Rf  $(VOLUME_LOCAL); \
 	else \
 		echo "$(YELLOW)No volume local to remove$(END)"; \
 	fi
@@ -144,20 +206,22 @@ remove_cache:
 	@docker buildx prune -af 
 
 
-clean: suppress remove_volume remove_cache
+clean: suppress remove_network remove_volume
 
 
-fclean: remove_env clean remove_volume_local
+fclean: clean remove_certificate remove_volume_local remove_cache 
 
 
 re: clean all
+
+fre: fclean all
 
 
 #==================================== PHONY ====================================#
 
 
 .PHONY: all up build \
-		check_config check_domain check_env check_path_volume \
+		check_config check_domain check_env check_path_volume check_certificate\
 		version status \
-		down supress remove_cache remove_volume remove_volume_local\
-		fclean re
+		down supress remove_cache remove_volume remove_volume_local remove_network \
+		clean fclean re fre
