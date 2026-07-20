@@ -10,6 +10,7 @@ ADMIN_MAIL=$(cat /run/secrets/wp_admin_email)
 USER_PASSWORD=$(cat /run/secrets/wp_user_password)
 USER_NAME=$(cat /run/secrets/wp_user)
 USER_MAIL=$(cat /run/secrets/wp_user_email)
+SITE_URL="https://${DOMAIN_NAME}"
 
 COUNT=0
 MAX_RETRIES=10
@@ -18,9 +19,15 @@ if [ -z "$DB_USER" ] || [ -z "$DB_USER_PASSWORD" ] \
 	|| [ -z "$ADMIN_PASSWORD" ] || [ -z "$ADMIN_NAME" ] || [ -z "$ADMIN_MAIL" ] \
 	|| [ -z "$USER_PASSWORD" ] || [ -z "$USER_NAME" ] || [ -z "$USER_MAIL" ] \
 	|| [ -z "$WORDPRESS_DB_HOST" ] || [ -z "$WORDPRESS_DB_NAME" ] || [ -z "$WP_TITLE" ] || [ -z "$DOMAIN_NAME" ] \
-        || [ -z "$DB_PORT" ] || [ -z "$WP_PORT" ]; then
+    || [ -z "$DB_PORT" ] || [ -z "$WP_PORT" ]; then
 	echo "Variables in environnement missing"; 
 	exit 1; 
+fi
+
+if [ "$NGINX_PORT" = "443" ]; then
+    SITE_URL="https://${DOMAIN_NAME}"
+else
+    SITE_URL="https://${DOMAIN_NAME}:${NGINX_PORT}"
 fi
 
 while ! mariadb-admin ping -h "mariadb" --port="${DB_PORT}" -u"$DB_USER" -p"$DB_USER_PASSWORD" --silent 2>/dev/null; do
@@ -41,7 +48,7 @@ if [ ! -f /var/www/html/wp-settings.php ]; then
         --path=/var/www/html \
         --allow-root
 	php83 /usr/local/bin/wp core install \
-        --url="https://${DOMAIN_NAME}:${NGINX_PORT}" \
+        --url=$SITE_URL \
         --title=$WP_TITLE \
         --admin_user=$ADMIN_NAME \
         --admin_password=$ADMIN_PASSWORD \
