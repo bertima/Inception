@@ -19,12 +19,12 @@ all: check_config up
 
 
 up: check_config
-	@cd $(SRC) && docker compose up --build -d
+	@docker compose -f srcs/docker-compose.yml up --build -d
 	@echo "$(GREEN)BUILD AND RUN IMAGE$(END)"
 
 
 build: check_config
-	@cd $(SRC) && docker compose build
+	@docker compose -f srcs/docker-compose.yml build
 	@echo "$(GREEN)IMAGE CREATED$(END)"
 
 
@@ -131,7 +131,7 @@ check_config: check_env check_domain check_path_volume check_certificate
 
 
 down:
-	@cd srcs && docker compose down -v --rmi all
+	@docker compose -f srcs/docker-compose.yml down -v --rmi all
 	@echo "$(RED)CONTAINERS, NETWORK AND IMAGES BUILD BY DOCKER COMPOSE REMOVE$(END)"
 
 

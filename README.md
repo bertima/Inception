@@ -47,6 +47,8 @@ Only Nginx exposes a port to the host; MariaDB and WordPress are reachable exclu
 
 A Virtual Machine emulates an entire computer, including its own kernel, running on top of a hypervisor — heavier, slower to start, but fully isolated at the hardware/OS level. Docker containers instead share the host's kernel and only package the application and its dependencies, making them far lighter and faster to start (seconds instead of minutes), at the cost of slightly weaker isolation than a full VM.
 
+<p align="center"><img src=https://blog.stephane-robert.info/_astro/virtualisation-vs-conteneurs.CTm4Iq-N_1NNIoJ.svg width="800"></p>
+
 For this project, Docker is the appropriate choice: we need three lightweight, disposable, quickly-restartable services rather than three fully independent operating systems, and Docker Compose lets us describe and orchestrate all three declaratively in a single file.
 
 ## __Secrets vs Environment Variables__
@@ -81,12 +83,19 @@ The site will then be reachable at `https://<your_domain>`. See [USER_DOC.md](./
 
 # __Resources__
 
+- [Base for docker](https://blog.stephane-robert.info/docs/conteneurisation/)
 - [Docker documentation](https://docs.docker.com/)
 - [Docker Compose file reference](https://docs.docker.com/compose/compose-file/)
-- [Docker secrets documentation](https://docs.docker.com/engine/swarm/secrets/)
 - [WP-CLI documentation](https://wp-cli.org/)
 - [MariaDB documentation](https://mariadb.com/kb/en/documentation/)
 - [Nginx documentation](https://nginx.org/en/docs/)
-- [Alpine Linux packages](https://pkgs.alpinelinux.org/packages)
 
-**AI usage:** AI assistance (Claude) was used throughout this project to review and debug configuration files (Dockerfiles, entrypoint scripts, `docker-compose.yml`, `nginx.conf`) — identifying syntax errors (e.g. shell quoting issues, malformed CLI flags), inconsistencies between files (e.g. a configurable port declared in `.env` but not actually wired through every service that needed it), and to help structure and review this documentation (`DEV_DOC.md`, `USER_DOC.md`, `README.md`). All architecture decisions, the actual Dockerfiles, scripts, and configuration content were written and tested by the author; AI was used as a reviewer/debugging aid, not as the original author of the infrastructure.
+**AI usage:** AI assistance was used throughout this project to review and debug configuration files (Dockerfiles, entrypoint scripts, `docker-compose.yml`, `nginx.conf`) — identifying syntax errors (e.g. shell quoting issues, malformed CLI flags), inconsistencies between files, and to help structure. All architecture decisions, the actual Dockerfiles, scripts, and configuration content were written and tested by the author; AI was used as a reviewer/debugging aid, not as the original author of the infrastructure.
+
+# Special thanks
+
+- Stempels
+- Dbajeux
+- Kprist
+- Eschmitz
+- Stephane Robert

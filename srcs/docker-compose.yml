@@ -10,10 +10,10 @@ services:
       test: 
         - CMD-SHELL
         - mariadb-admin ping -h localhost -P "$$DB_PORT" -u root -p"$$(cat /run/secrets/db_root_password)" --silent
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      interval: 2s
+      timeout: 2s
+      retries: 20
+      start_period: 10s
     secrets:
       - db_root_password
       - db_user_password
@@ -23,7 +23,7 @@ services:
       - DB_PORT=${DB_PORT}
     volumes:
       - type: volume
-        source: maria_db
+        source: mariadb_data
         target: /var/lib/mysql
     networks:
       - inception
@@ -41,10 +41,10 @@ services:
       test:
        - CMD-SHELL
        - nc -z 127.0.0.1 ${WP_PORT} || exit 1
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      interval: 2s
+      timeout: 2s
+      retries: 20
+      start_period: 14s
     secrets:
       - db_user
       - db_user_password
@@ -119,7 +119,7 @@ volumes:
       o: bind
       device: /home/${USER}/data/nginx/
     
-  maria_db:
+  mariadb_data:
     name: mariadb_data
     driver: local
     driver_opts:

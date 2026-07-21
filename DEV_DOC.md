@@ -40,7 +40,6 @@ git clone <repo-url> <name> && cd <name>
 Structure :
 ```bash
 .
-.
 ├── DEV_DOC.md
 ├── Makefile
 ├── README.md
@@ -79,6 +78,7 @@ touch srcs/.env
 DOMAIN_NAME=bertrmar.42.fr
 DB_NAME=wordpress
 WP_TITLE=Inception
+
 NGINX_PORT=443
 WP_PORT=9000
 DB_PORT=3306
@@ -133,7 +133,7 @@ Only `NGINX_PORT` is wired into compose (`"${NGINX_PORT}:443"`). To change it:
 
 ```bash
 # edit NGINX_PORT in srcs/.env, then:
-cd srcs && docker compose up -d nginx   # no rebuild needed
+make fre
 ```
 
 Browse to `https://bertrmar.42.fr:<new_port>`.

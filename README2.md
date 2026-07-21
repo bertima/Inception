@@ -76,14 +76,6 @@ blob = Binary Large Object
 
 PID1 doesn't received signal ctrl + C (SIGINT) or docker stop (SIGTERM) by default
 
-### .ENV
-
-```bash
-DOMAIN_NAME=$(USER).42.fr
-WP_DATA_PATH=/home/$(USER)/data
-```
-
-
 ## <u>__VOLUME__</u>
 Persistante stores for containers
 
@@ -190,6 +182,15 @@ docker exec -it wordpress php83 /usr/local/bin/wp option get siteurl --path=/var
 docker exec -it wordpress php83 /usr/local/bin/wp option get blogname --path=/var/www/bertrmar.42.fr --allow-root
 
 docker exec -it wordpress ls -la /var/www/bertrmar.42.fr/wp-config.php
+
+sudo ss -tulnp (port socket statics -t tcp - u udp -l listening -n numeric pas de resolution dns -p process pid + nom)
+
+# TCP
+
+Connexion établie avant l'échange — les deux machines font d'abord une "poignée de main" (le fameux three-way handshake : SYN, SYN-ACK, ACK) pour s'assurer que les deux sont prêtes  
+Ordre garanti — si tu envoies les paquets 1, 2, 3, ils arrivent dans cet ordre exact de l'autre côté (même si le réseau les fait voyager dans le désordre, TCP les réordonne)  
+Rien ne se perd — si un paquet se perd en chemin, TCP le détecte et le renvoie automatiquement  
+Contrôle de flux — évite de surcharger le destinataire s'il ne peut pas traiter les données assez vite
 
 # __COMMAND__
 

@@ -10,10 +10,10 @@ ADMIN_MAIL=$(cat /run/secrets/wp_admin_email)
 USER_PASSWORD=$(cat /run/secrets/wp_user_password)
 USER_NAME=$(cat /run/secrets/wp_user)
 USER_MAIL=$(cat /run/secrets/wp_user_email)
-SITE_URL="https://${DOMAIN_NAME}"
+SITE_URL=""
 
 COUNT=0
-MAX_RETRIES=10
+MAX_RETRIES=60
 
 if [ -z "$DB_USER" ] || [ -z "$DB_USER_PASSWORD" ] \
 	|| [ -z "$ADMIN_PASSWORD" ] || [ -z "$ADMIN_NAME" ] || [ -z "$ADMIN_MAIL" ] \
@@ -30,8 +30,9 @@ else
     SITE_URL="https://${DOMAIN_NAME}:${NGINX_PORT}"
 fi
 
-while ! mariadb-admin ping -h "mariadb" --port="${DB_PORT}" -u"$DB_USER" -p"$DB_USER_PASSWORD" --silent 2>/dev/null; do
-    if [ $COUNT -ge $MAX_RETRIES ]; then
+while ! mariadb-admin ping -h "$WORDPRESS_DB_HOST" --port="${DB_PORT}" -u"$DB_USER" -p"$DB_USER_PASSWORD" --silent 2>/dev/null; do
+    COUNT=$((COUNT+1))
+	if [ $COUNT -ge $MAX_RETRIES ]; then
         echo "Error : No responses of MariaDB after $MAX_RETRIES sec. Stopping."
         exit 1 
     fi

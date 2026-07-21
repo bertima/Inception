@@ -10,7 +10,7 @@ if [ ! -f /etc/nginx/ssl/inception.crt ] || [ ! -f /etc/nginx/ssl/inception.key 
     exit 1
 fi
 
-# Substitution du nom de domaine dans la conf
+# Substitution doamin name in conf
 sed -i "s/\${DOMAIN_NAME}/${DOMAIN_NAME}/g" /etc/nginx/http.d/default.conf
 sed -i "s/\${WP_PORT}/${WP_PORT}/g" /etc/nginx/http.d/default.conf
 
